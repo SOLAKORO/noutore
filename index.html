@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>そらごころ脳トレ</title>
+    <!-- Chart.js for Radar Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 先ほどと同じデザインスタイルを適用 */
+        :root { --primary-color: #4A90E2; --secondary-color: #F39C12; --bg-color: #EBF5FB; --text-color: #333; --card-bg: #FFFFFF; --btn-hover: #357ABD; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
+        #app { width: 100%; max-width: 480px; background-color: var(--card-bg); box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        header { background-color: var(--primary-color); color: white; text-align: center; padding: 15px 10px; font-size: 20px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .screen { display: none; } .screen.active { display: flex; flex-direction: column; }
+        h2 { text-align: center; color: var(--primary-color); margin-top: 0;}
+        input[type="text"] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 2px solid var(--primary-color); border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 15px; margin: 8px 0; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, transform 0.1s; width: 100%; }
+        button:active { transform: scale(0.98); } button:hover { background-color: var(--btn-hover); }
+        .btn-secondary { background-color: #95a5a6; } .btn-secondary:hover { background-color: #7f8c8d; }
+        .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .category-card { color: white; padding: 20px 10px; border-radius: 12px; text-align: center; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .cat-memory { background: linear-gradient(135deg, #FF9A9E, #FECFEF); color: #333;}
+        .cat-reflex { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        .cat-calc { background: linear-gradient(135deg, #84fab0, #8fd3f4); color: #333;}
+        .cat-attention { background: linear-gradient(135deg, #fccb90, #d57eeb); }
+        .minigame-list { display: flex; flex-direction: column; gap: 10px; }
+        #game-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 250px; background-color: #f9f9f9; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        #game-timer, #game-score { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #555; }
+        .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        .arrow-display { font-size: 80px; font-weight: bold; margin: 20px; }
+        .stroop-text { font-size: 40px; font-weight: bold; margin: 20px; }
+        .odd-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; }
+        .odd-cell { font-size: 24px; padding: 10px; background: #eee; border-radius: 5px; cursor: pointer; }
+        .ranking-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .ranking-table th, .ranking-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        .ranking-table th { background-color: var(--primary-color); color: white; }
+        .rank-1 { font-weight: bold; color: gold; font-size: 1.2em;}
+        .rank-2 { font-weight: bold; color: silver; }
+        .rank-3 { font-weight: bold; color: #cd7f32; }
+        .chart-container { position: relative; height: 250px; width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <header>
+        <span id="header-user">👤 ゲスト</span>
+        <span>☁️そらごころ脳トレ</span>
+        <span style="font-size: 14px; cursor: pointer;" onclick="app.showScreen('home')">🏠</span>
+    </header>
+
+    <div class="content">
+        <!-- ログイン画面 -->
+        <div id="screen-login" class="screen active">
+            <h2>ようこそ！</h2>
+            <p>毎日少しずつ脳を鍛えましょう。<br>まずはあなたの名前を教えてください。</p>
+            <input type="text" id="username-input" placeholder="名前を入力（例：そらたろう）">
+            <button onclick="app.login()">はじめる</button>
+        </div>
+
+        <!-- ホーム画面 -->
+        <div id="screen-home" class="screen">
+            <h2>脳力チャート</h2>
+            <div class="chart-container"><canvas id="radarChart"></canvas></div>
+            <h3 style="margin-top:20px;">トレーニングを選ぶ</h3>
+            <div class="category-grid">
+                <div class="category-card cat-memory" onclick="app.showGameList('memory')">🧠<br>記憶力系</div>
+                <div class="category-card cat-reflex" onclick="app.showGameList('reflex')">⚡<br>直感力・判断力系</div>
+                <div class="category-card cat-calc" onclick="app.showGameList('calc')">🧮<br>計算力系</div>
+                <div class="category-card cat-attention" onclick="app.showGameList('attention')">👀<br>注意力・空間系</div>
+            </div>
+        </div>
+
+        <!-- ゲームリスト画面 -->
+        <div id="screen-gamelist" class="screen">
+            <h2 id="gamelist-title">カテゴリ</h2>
+            <div id="gamelist-container" class="minigame-list"></div>
+            <button class="btn-secondary" style="margin-top:20px;" onclick="app.showScreen('home')">戻る</button>
+        </div>
+
+        <!-- ゲームプレイ画面 -->
+        <div id="screen-game" class="screen">
+            <h2 id="game-title">ゲーム名</h2>
+            <div style="display:flex; justify-content: space-between;">
+                <div id="game-timer">⏳ 30秒</div>
+                <div id="game-score">🏆 0点</div>
+            </div>
+            <div id="game-area"></div>
+            <button class="btn-secondary" onclick="app.endGame(true)">やめる</button>
+        </div>
+
+        <!-- 結果＆ランキング画面 -->
+        <div id="screen-result" class="screen">
+            <h2>結果発表</h2>
+            <p style="text-align:center; font-size:24px; font-weight:bold;" id="result-score">スコア: 0</p>
+            <h3 style="margin-top:20px; text-align:center;">🏆 今月のランキング</h3>
+            <table class="ranking-table">
+                <thead><tr><th>順位</th><th>名前</th><th>スコア</th></tr></thead>
+                <tbody id="ranking-body"></tbody>
+            </table>
+            <div style="margin-top: 20px;">
+                <button onclick="app.playCurrentGame()">もう一度プレイ</button>
+                <button class="btn-secondary" onclick="app.showScreen('home')">ホームに戻る</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* =========================================
+   ★★ここにGASのウェブアプリURLを貼り付けます★★
+========================================= */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwjuZEq2wZ8UsFOOwubo-Dfs4LJYr_RWnsjLnntH7d9fqa4oCrxgB1ByGn9buP3RwZKig/exec";
+// 例: const GAS_URL = "https://script.google.com/macros/s/AKfyc.../exec";
+
+/* =========================================
+   ゲームデータ定義（全8種）
+========================================= */
+const GAMES = {
+    memory_diary: {
+        id: 'memory_diary', category: 'memory', title: '昨日、何食べた？', desc: '一瞬表示される予定を覚えよう！',
+        play: (e) => {
+            const foods = ['🍎りんご', '🍜ラーメン', '🍛カレー', '🍣寿司', '🍔バーガー', '🥗サラダ'];
+            const days = ['月', '火', '水'];
+            let tD = '', tF = '';
+            e.render(`<p>3日間の食事を覚えて！(3秒)</p><table style="width:100%;font-size:20px;border:1px solid #ccc;">${days.map(d=>`<tr><td style="border:1px solid #ccc">${d}曜</td><td style="border:1px solid #ccc" id="day-${d}"></td></tr>`).join('')}</table>`);
+            days.forEach(d => { const f=foods[Math.floor(Math.random()*foods.length)]; document.getElementById(`day-${d}`).innerText=f; if(Math.random()>0.5||tD===''){tD=d;tF=f;} });
+            setTimeout(() => {
+                const opt=[...foods].sort(()=>0.5-Math.random()).slice(0,4); if(!opt.includes(tF)){opt[0]=tF;opt.sort(()=>0.5-Math.random());}
+                e.render(`<p style="font-size:20px;font-weight:bold;">${tD}曜に食べたのは？</p><div class="grid-2x2">${opt.map(o=>`<button onclick="app.checkAnswer('${o===tF}')">${o}</button>`).join('')}</div>`);
+            }, 3000);
+        }
+    },
+    reflex_arrow: {
+        id: 'reflex_arrow', category: 'reflex', title: 'あべこべ矢印', desc: '青は同じ方向、赤は【逆】！',
+        play: (e) => {
+            const arr = [{d:'UP',i:'⬆️'}, {d:'DOWN',i:'⬇️'}, {d:'LEFT',i:'⬅️'}, {d:'RIGHT',i:'➡️'}];
+            const isRev = Math.random()>0.5; const t = arr[Math.floor(Math.random()*arr.length)];
+            let cD = t.d; if(isRev){ cD = cD==='UP'?'DOWN':cD==='DOWN'?'UP':cD==='LEFT'?'RIGHT':'LEFT'; }
+            e.render(`<p>${isRev?'<span style="color:red;font-weight:bold">赤は逆方向！</span>':'<span style="color:blue;font-weight:bold">青は同じ方向！</span>'}</p><div class="arrow-display" style="color:${isRev?'red':'blue'}">${t.i}</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;max-width:200px;margin:0 auto;"><div></div><button onclick="app.checkAnswer('${cD==='UP'}')">⬆️</button><div></div><button onclick="app.checkAnswer('${cD==='LEFT'}')">⬅️</button><button onclick="app.checkAnswer('${cD==='DOWN'}')">⬇️</button><button onclick="app.checkAnswer('${cD==='RIGHT'}')">➡️</button></div>`);
+        }
+    },
+    reflex_stroop: {
+        id: 'reflex_stroop', category: 'reflex', title: '色と文字の一致', desc: '文字の意味ではなく【色】を答えろ！',
+        play: (e) => {
+            const cols = [{n:'あか',c:'red'},{n:'あお',c:'blue'},{n:'みどり',c:'green'},{n:'きいろ',c:'#d4b500'}];
+            const t = cols[Math.floor(Math.random()*cols.length)]; const c = cols[Math.floor(Math.random()*cols.length)];
+            e.render(`<p>文字に塗られている【色】は？</p><div class="stroop-text" style="color:${c.c}">${t.n}</div><div class="grid-2x2">${cols.map(x=>`<button onclick="app.checkAnswer('${x.c===c.c}')">${x.n}</button>`).join('')}</div>`);
+        }
+    },
+    calc_make10: {
+        id: 'calc_make10', category: 'calc', title: '記号を当てろ', desc: '式が成り立つように＋－×÷を！',
+        play: (e) => {
+            const ops = [{o:'+',c:(a,b)=>a+b},{o:'-',c:(a,b)=>a-b},{o:'×',c:(a,b)=>a*b}];
+            const t = ops[Math.floor(Math.random()*ops.length)]; const a=Math.floor(Math.random()*9)+1; const b=Math.floor(Math.random()*9)+1; const ans=t.c(a,b);
+            e.render(`<p>？に入る記号は？</p><div style="font-size:32px;font-weight:bold;margin:20px;">${a} <span style="color:red">？</span> ${b} ＝ ${ans}</div><div class="grid-2x2"><button onclick="app.checkAnswer('${t.o==='+'}')">＋</button><button onclick="app.checkAnswer('${t.o==='-'}')">－</button><button onclick="app.checkAnswer('${t.o==='×'}')">×</button><button onclick="app.checkAnswer('${t.o==='÷'}')">÷</button></div>`);
+        }
+    },
+    attention_odd: {
+        id: 'attention_odd', category: 'attention', title: '仲間外れ探し', desc: '１つだけ違う漢字を見つけ出せ！',
+        play: (e) => {
+            const p = [['犬','太'],['白','百'],['微','徴']]; const pr = p[Math.floor(Math.random()*p.length)];
+            const b = pr[0], o = pr[1]; const oddI = Math.floor(Math.random()*20);
+            let h = '<div class="odd-grid">'; for(let i=0;i<20;i++){ h+=`<div class="odd-cell" onclick="app.checkAnswer('${i===oddI}')">${i===oddI?o:b}</div>`; } h+='</div>';
+            e.render(`<p>違う文字をタップ！</p>${h}`);
+        }
+    }
+};
+
+/* =========================================
+   アプリケーションロジック
+========================================= */
+const app = {
+    username: '', currentGame: null, score: 0, timeLeft: 0, timerId: null, radarChart: null,
+    stats: { memory: 0, reflex: 0, calc: 0, attention: 0 },
+
+    init() {
+        const savedName = localStorage.getItem('sora_name');
+        if (savedName) { this.username = savedName; document.getElementById('header-user').innerText = `👤 ${this.username}`; this.loadStats(); this.showScreen('home'); }
+    },
+    login() {
+        const name = document.getElementById('username-input').value.trim();
+        if (name) { this.username = name; localStorage.setItem('sora_name', name); document.getElementById('header-user').innerText = `👤 ${this.username}`; this.loadStats(); this.showScreen('home'); }
+    },
+    showScreen(sId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`screen-${sId}`).classList.add('active');
+        if(sId === 'home') this.renderChart();
+    },
+    showGameList(c) {
+        const con = document.getElementById('gamelist-container'); con.innerHTML = '';
+        const cN = {memory:'記憶力系', reflex:'直感力系', calc:'計算力系', attention:'注意力系'};
+        document.getElementById('gamelist-title').innerText = cN[c];
+        Object.values(GAMES).filter(g=>g.category===c).forEach(g => {
+            const btn = document.createElement('button'); btn.innerHTML = `<div style="font-size:18px;">${g.title}</div><div style="font-size:12px;font-weight:normal;">${g.desc}</div>`;
+            btn.style.textAlign = 'left'; btn.onclick = () => this.startGame(g); con.appendChild(btn);
+        });
+        this.showScreen('gamelist');
+    },
+    startGame(g) {
+        this.currentGame = g; this.score = 0; this.timeLeft = 30;
+        document.getElementById('game-title').innerText = g.title; document.getElementById('game-score').innerText = `🏆 0点`;
+        this.showScreen('game'); this.updateTimerDisplay();
+        this.timerId = setInterval(() => { this.timeLeft--; this.updateTimerDisplay(); if (this.timeLeft<=0) this.endGame(); }, 1000);
+        this.nextQuestion();
+    },
+    updateTimerDisplay() { document.getElementById('game-timer').innerText = `⏳ ${this.timeLeft}秒`; },
+    nextQuestion() { if(this.timeLeft>0) this.currentGame.play({render: (h) => document.getElementById('game-area').innerHTML = h }); },
+    checkAnswer(ok) {
+        if (ok === 'true') { this.score+=10; document.getElementById('game-area').style.backgroundColor = '#d4edda'; } 
+        else { document.getElementById('game-area').style.backgroundColor = '#f8d7da'; }
+        document.getElementById('game-score').innerText = `🏆 ${this.score}点`;
+        setTimeout(() => { document.getElementById('game-area').style.backgroundColor = '#f9f9f9'; this.nextQuestion(); }, 300);
+    },
+    endGame(m = false) {
+        clearInterval(this.timerId);
+        if (m) { this.showScreen('home'); return; }
+        this.stats[this.currentGame.category] += this.score; this.saveStats();
+        
+        document.getElementById('result-score').innerText = `スコア: ${this.score}点`;
+        this.showScreen('result');
+        this.saveAndLoadRanking(this.currentGame.id, this.score);
+    },
+    playCurrentGame() { this.startGame(this.currentGame); },
+    saveStats() { localStorage.setItem(`sora_stats_${this.username}`, JSON.stringify(this.stats)); },
+    loadStats() { const s = localStorage.getItem(`sora_stats_${this.username}`); if(s) this.stats = JSON.parse(s); },
+    renderChart() {
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        if(this.radarChart) this.radarChart.destroy();
+        this.radarChart = new Chart(ctx, { type:'radar', data: { labels:['記憶力','直感力','計算力','注意力'], datasets:[{ label:'脳力', data:[this.stats.memory, this.stats.reflex, this.stats.calc, this.stats.attention], backgroundColor:'rgba(74, 144, 226, 0.4)', borderColor:'rgba(74, 144, 226, 1)', pointBackgroundColor:'rgba(74, 144, 226, 1)', borderWidth: 2 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{r:{angleLines:{color:'rgba(0,0,0,0.1)'},grid:{color:'rgba(0,0,0,0.1)'},pointLabels:{font:{size:14}},ticks:{display:false,min:0}}}, plugins:{legend:{display:false}} } });
+    },
+
+/* =========================================
+       GAS (スプレッドシート) との通信
+    ========================================= */
+    async saveAndLoadRanking(gameId, score) {
+        const tbody = document.getElementById('ranking-body');
+        
+        if (!GAS_URL || GAS_URL.indexOf("script.google.com") === -1) {
+            tbody.innerHTML = '<tr><td colspan="3">※ GAS_URLが設定されていません</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '<tr><td colspan="3">送信・取得中...</td></tr>';
+
+        try {
+            // 【変更点1】カテゴリ名とゲーム名を組み合わせた日本語タイトルを作る
+            const catNames = {memory:'記憶力系', reflex:'直感力・判断力系', calc:'計算力系', attention:'注意力・空間認識系'};
+            const jpTitle = `${catNames[this.currentGame.category]}：${this.currentGame.title}`;
+
+            // 1. スコアを送信して保存
+            if (score > 0) {
+                // gameIdの代わりにgameTitle(日本語)を送信
+                const saveUrl = `${GAS_URL}?action=save&gameTitle=${encodeURIComponent(jpTitle)}&name=${encodeURIComponent(this.username)}&score=${score}`;
+                await fetch(saveUrl);
+            }
+
+            // 2. 今月のランキングを取得
+            // 【変更点2】キャッシュを防ぐため、通信URLの最後に時刻(&t=...)を付与
+            const loadUrl = `${GAS_URL}?action=ranking&gameTitle=${encodeURIComponent(jpTitle)}&t=${Date.now()}`;
+            const response = await fetch(loadUrl);
+            const ranks = await response.json();
+
+            // 3. 画面に表示
+            tbody.innerHTML = '';
+            if (ranks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">まだ記録がありません</td></tr>';
+                return;
+            }
+
+            ranks.forEach((r, idx) => {
+                const tr = document.createElement('tr');
+                const rc = idx < 3 ? `rank-${idx+1}` : '';
+                tr.innerHTML = `<td class="${rc}">${idx + 1}位</td><td>${r.name}</td><td class="${rc}">${r.score}点</td>`;
+                if(r.name === this.username && r.score === this.score) {
+                    tr.style.backgroundColor = '#fff3cd'; tr.style.fontWeight = 'bold';
+                }
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="3">通信エラーが発生しました</td></tr>';
+        }
+    }
+};
+
+window.onload = () => app.init();
+</script>
+</body>
+</html>
