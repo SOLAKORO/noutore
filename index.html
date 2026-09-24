@@ -3,168 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="そらごころ脳トレ - 記憶力・直感力・計算力・注意力を鍛えるミニゲーム集。毎日の脳トレにどうぞ。">
+    <meta name="theme-color" content="#4A90E2">
+    <meta property="og:title" content="☁️そらごころ脳トレ">
+    <meta property="og:description" content="記憶力・直感力・計算力・注意力を鍛える脳トレミニゲーム集。今日の脳年齢を測定しよう！">
+    <meta property="og:type" content="website">
     <title>そらごころ脳トレ</title>
-    <!-- Chart.js for Radar Chart -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* 先ほどと同じデザインスタイルを適用 */
-        :root { --primary-color: #4A90E2; --secondary-color: #F39C12; --bg-color: #EBF5FB; --text-color: #333; --card-bg: #FFFFFF; --btn-hover: #357ABD; }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
-        #app { width: 100%; max-width: 480px; background-color: var(--card-bg); box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        header { background-color: var(--primary-color); color: white; text-align: center; padding: 15px 10px; font-size: 20px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        :root { --primary: #4A90E2; --secondary: #F39C12; --bg: #EBF5FB; --text: #333; --card: #FFF; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; user-select: none; }
+        select, input, textarea { user-select: text; -webkit-user-select: text; }
+        #app { width: 100%; max-width: 480px; background: var(--card); box-shadow: 0 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        header { background: var(--primary); color: white; padding: 15px 10px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         .content { padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
-        .screen { display: none; } .screen.active { display: flex; flex-direction: column; }
-        h2 { text-align: center; color: var(--primary-color); margin-top: 0;}
-        input[type="text"] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 2px solid var(--primary-color); border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        button { background-color: var(--primary-color); color: white; border: none; padding: 15px; margin: 8px 0; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, transform 0.1s; width: 100%; }
-        button:active { transform: scale(0.98); } button:hover { background-color: var(--btn-hover); }
-        .btn-secondary { background-color: #95a5a6; } .btn-secondary:hover { background-color: #7f8c8d; }
-        .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .category-card { color: white; padding: 20px 10px; border-radius: 12px; text-align: center; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .cat-memory { background: linear-gradient(135deg, #FF9A9E, #FECFEF); color: #333;}
-        .cat-reflex { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
-        .cat-calc { background: linear-gradient(135deg, #84fab0, #8fd3f4); color: #333;}
-        .cat-attention { background: linear-gradient(135deg, #fccb90, #d57eeb); }
-        .minigame-list { display: flex; flex-direction: column; gap: 10px; }
-        #game-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 250px; background-color: #f9f9f9; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-        #game-timer, #game-score { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #555; }
-        .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .arrow-display { font-size: 80px; font-weight: bold; margin: 20px; }
-        .stroop-text { font-size: 40px; font-weight: bold; margin: 20px; }
-        .odd-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; }
-        .odd-cell { font-size: 24px; padding: 10px; background: #eee; border-radius: 5px; cursor: pointer; }
-        .ranking-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .ranking-table th, .ranking-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
-        .ranking-table th { background-color: var(--primary-color); color: white; }
-        .rank-1 { font-weight: bold; color: gold; font-size: 1.2em;}
-        .rank-2 { font-weight: bold; color: silver; }
-        .rank-3 { font-weight: bold; color: #cd7f32; }
-        .chart-container { position: relative; height: 250px; width: 100%; margin-top: 20px; }
+        .screen { display: none; } .screen.active { display: flex; flex-direction: column; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; }
+        input[type="text"] { width: 100%; padding: 12px; margin: 10px 0 20px; border: 2px solid var(--primary); border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        select { width:100%; padding:10px; font-size:16px; border-radius:8px; border:2px solid var(--primary); box-sizing:border-box; background:white; }
+        button { background: var(--primary); color: white; border: none; padding: 15px; margin: 8px 0; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.1s; width: 100%; }
+        button:active { transform: scale(0.95); }
+        .btn-sub { background: #95a5a6; } .btn-accent { background: var(--secondary); }
+        .btn-daily { background: linear-gradient(45deg, #ff9a9e, #fecfef); color: #333; font-size: 18px; padding: 20px; border: 2px solid #ff758c; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .cat-card { color: white; padding: 15px 10px; border-radius: 12px; text-align: center; font-weight: bold; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+        .cat-card:active { transform: scale(0.96); }
+        .bg-memory { background: linear-gradient(135deg, #FF9A9E, #FECFEF); color: #333; }
+        .bg-reflex { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        .bg-calc { background: linear-gradient(135deg, #84fab0, #8fd3f4); color: #333; }
+        .bg-attention { background: linear-gradient(135deg, #fccb90, #d57eeb); }
+        .game-list-item { background: #f0f8ff; border: 1px solid #cce5ff; padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; text-align: left; transition: background .15s; }
+        .game-list-item:active { background: #dceeff; }
+        #game-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 300px; background: #f9f9f9; border-radius: 10px; padding: 15px; margin-bottom: 15px; position: relative; text-align: center; transition: background-color .25s; touch-action: pan-y; }
+        .top-bar { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        #g-bar { height: 6px; background: #ddd; border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+        #g-bar-fill { height: 100%; width: 100%; background: var(--secondary); transition: width 1s linear; }
+        .ranking-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        .ranking-table th, .ranking-table td { padding: 8px; border-bottom: 1px solid #ddd; text-align: center; }
+        .ranking-table th { background: var(--primary); color: white; }
+        .rank-1 { color: #d4af37; font-weight: bold; font-size: 1.1em; } .rank-2 { color: #c0c0c0; font-weight: bold; } .rank-3 { color: #cd7f32; font-weight: bold; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center; color: white; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .age-result { font-size: 80px; font-weight: bold; color: #FFD700; text-shadow: 0 0 20px #FF8C00; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { 0% { transform: scale(0.1); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        /* ゲーム特有UI */
+        .board-4x4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; width: 100%; max-width: 300px; }
+        .card { background: var(--primary); color: var(--primary); height: 60px; display: flex; justify-content: center; align-items: center; font-size: 24px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .card.open { background: white; color: black; border: 2px solid var(--primary); }
+        .seq-btn { height: 60px; font-size: 24px; border-radius: 5px; background: #ddd; display: flex; justify-content: center; align-items: center; transition: background .15s; }
+        .seq-btn.lit { background: #f1c40f; box-shadow: 0 0 15px #f1c40f; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <header>
-        <span id="header-user">👤 ゲスト</span>
+        <span id="h-user" onclick="app.editName()" style="cursor:pointer">👤 ゲスト</span>
         <span>☁️そらごころ脳トレ</span>
-        <span style="font-size: 14px; cursor: pointer;" onclick="app.showScreen('home')">🏠</span>
+        <div>
+            <span onclick="app.toggleBGM()" id="bgm-icon" style="cursor:pointer; margin-right:10px;">🔈</span>
+            <span onclick="app.goHome()" style="cursor:pointer">🏠</span>
+        </div>
     </header>
 
     <div class="content">
-        <!-- ログイン画面 -->
+        <!-- ログイン -->
         <div id="screen-login" class="screen active">
             <h2>ようこそ！</h2>
-            <p>毎日少しずつ脳を鍛えましょう。<br>まずはあなたの名前を教えてください。</p>
-            <input type="text" id="username-input" placeholder="名前を入力（例：そらたろう）">
+            <p>日々のあそびの中で、楽しく脳を鍛えましょう。</p>
+            <input type="text" id="username-input" placeholder="名前を入力">
             <button onclick="app.login()">はじめる</button>
         </div>
 
-        <!-- ホーム画面 -->
+        <!-- ホーム -->
         <div id="screen-home" class="screen">
-            <h2>脳力チャート</h2>
-            <div class="chart-container"><canvas id="radarChart"></canvas></div>
-            <h3 style="margin-top:20px;">トレーニングを選ぶ</h3>
-            <div class="category-grid">
-                <div class="category-card cat-memory" onclick="app.showGameList('memory')">🧠<br>記憶力系</div>
-                <div class="category-card cat-reflex" onclick="app.showGameList('reflex')">⚡<br>直感力・判断力系</div>
-                <div class="category-card cat-calc" onclick="app.showGameList('calc')">🧮<br>計算力系</div>
-                <div class="category-card cat-attention" onclick="app.showGameList('attention')">👀<br>注意力・空間系</div>
+            <button class="btn-daily" onclick="app.startDaily()">✨ 今日の脳トレ（全4種連続）</button>
+            <div class="grid-2x2" style="margin-top:15px;">
+                <button class="btn-sub" onclick="app.showScreen('mypage')">📈 マイページ</button>
+                <button class="btn-sub" onclick="app.showScreen('global-ranking')">🏆 総合ランキング</button>
+            </div>
+            <h3 style="margin-top:20px;">自由にえらぶ</h3>
+            <div class="grid-2x2">
+                <div class="cat-card bg-memory" onclick="app.showCategory('memory')">🧠<br>記憶力系</div>
+                <div class="cat-card bg-reflex" onclick="app.showCategory('reflex')">⚡<br>直感力・判断力系</div>
+                <div class="cat-card bg-calc" onclick="app.showCategory('calc')">🧮<br>計算力系</div>
+                <div class="cat-card bg-attention" onclick="app.showCategory('attention')">👀<br>注意力・空間系</div>
             </div>
         </div>
 
-        <!-- ゲームリスト画面 -->
-        <div id="screen-gamelist" class="screen">
-            <h2 id="gamelist-title">カテゴリ</h2>
-            <div id="gamelist-container" class="minigame-list"></div>
-            <button class="btn-secondary" style="margin-top:20px;" onclick="app.showScreen('home')">戻る</button>
+        <!-- ゲーム一覧 -->
+        <div id="screen-list" class="screen">
+            <h2 id="list-title">カテゴリ</h2>
+            <div id="list-container"></div>
+            <button class="btn-sub" onclick="app.goHome()">戻る</button>
         </div>
 
-        <!-- ゲームプレイ画面 -->
+        <!-- プレイ画面 -->
         <div id="screen-game" class="screen">
-            <h2 id="game-title">ゲーム名</h2>
-            <div style="display:flex; justify-content: space-between;">
-                <div id="game-timer">⏳ 30秒</div>
-                <div id="game-score">🏆 0点</div>
-            </div>
+            <h3 id="game-title" style="text-align:center; margin:0 0 10px 0;">ゲーム名</h3>
+            <div class="top-bar"><span id="g-timer">⏳ --</span><span id="g-score">🏆 0</span></div>
+            <div id="g-bar"><div id="g-bar-fill"></div></div>
             <div id="game-area"></div>
-            <button class="btn-secondary" onclick="app.endGame(true)">やめる</button>
+            <button class="btn-sub" id="btn-quit" onclick="app.quitGame()">やめる</button>
         </div>
 
-        <!-- 結果＆ランキング画面 -->
+        <!-- 結果 -->
         <div id="screen-result" class="screen">
             <h2>結果発表</h2>
-            <p style="text-align:center; font-size:24px; font-weight:bold;" id="result-score">スコア: 0</p>
-            <h3 style="margin-top:20px; text-align:center;">🏆 今月のランキング</h3>
-            <table class="ranking-table">
-                <thead><tr><th>順位</th><th>名前</th><th>スコア</th></tr></thead>
-                <tbody id="ranking-body"></tbody>
-            </table>
-            <div style="margin-top: 20px;">
-                <button onclick="app.playCurrentGame()">もう一度プレイ</button>
-                <button class="btn-secondary" onclick="app.showScreen('home')">ホームに戻る</button>
+            <p style="text-align:center; font-size:28px; font-weight:bold;" id="res-score">0</p>
+            <div id="res-ranking-area">
+                <h3 style="text-align:center; margin-top:20px;">🏆 今月のランキング</h3>
+                <table class="ranking-table"><thead><tr><th>順位</th><th>名前</th><th>スコア</th></tr></thead><tbody id="res-ranking-body"></tbody></table>
             </div>
+            <button onclick="app.retryGame()" id="btn-retry" style="margin-top:20px;">もう一度</button>
+            <button class="btn-sub" onclick="app.goHome()">ホーム</button>
+        </div>
+
+        <!-- 総合ランキング -->
+        <div id="screen-global-ranking" class="screen">
+            <h2>総合ランキング</h2>
+            <select id="rank-select" style="margin-bottom:10px;" onchange="app.loadGlobalRanking()">
+                <option value="">ゲームを選んでください</option>
+                <!-- JSで追加 -->
+            </select>
+            <table class="ranking-table"><thead><tr><th>順位</th><th>名前</th><th>スコア</th></tr></thead><tbody id="global-ranking-body"><tr><td colspan="3">選択してください</td></tr></tbody></table>
+            <button class="btn-sub" style="margin-top:20px;" onclick="app.goHome()">戻る</button>
+        </div>
+
+        <!-- マイページ -->
+        <div id="screen-mypage" class="screen">
+            <h2>マイページ</h2>
+            <p style="text-align:center">過去の「今日の脳トレ」の記録です。</p>
+            <table class="ranking-table" style="margin-bottom:20px;"><thead><tr><th>日付</th><th>脳年齢</th></tr></thead><tbody id="mypage-body"></tbody></table>
+            <button class="btn-sub" onclick="app.goHome()">戻る</button>
+        </div>
+    </div>
+
+    <!-- 脳年齢発表モーダル -->
+    <div id="modal-age" class="modal">
+        <h3>測定完了！あなたの今日の脳年齢は…</h3>
+        <div class="age-result" id="age-num">20歳</div>
+        <button style="width:200px; margin-top:30px; background:white; color:var(--primary);" onclick="document.getElementById('modal-age').style.display='none'; app.goHome();">とじる</button>
+    </div>
+
+    <!-- 汎用お知らせモーダル（alert代替：埋め込み先で使っても安全） -->
+    <div id="modal-info" class="modal">
+        <h3 id="info-title"></h3>
+        <p id="info-msg" style="max-width:320px; text-align:center; white-space:pre-line; line-height:1.6;"></p>
+        <button id="info-ok" style="width:200px; margin-top:20px; background:white; color:var(--primary);">OK</button>
+    </div>
+
+    <!-- 汎用入力モーダル（prompt代替：埋め込み先で使っても安全） -->
+    <div id="modal-prompt" class="modal">
+        <h3 id="prompt-title"></h3>
+        <input type="text" id="prompt-input" style="width:80%; max-width:280px;">
+        <div style="display:flex; gap:10px; margin-top:20px; width:80%; max-width:280px;">
+            <button id="prompt-cancel" class="btn-sub">キャンセル</button>
+            <button id="prompt-ok" style="background:white; color:var(--primary);">OK</button>
         </div>
     </div>
 </div>
 
 <script>
 /* =========================================
-   ★★ここにGASのウェブアプリURLを貼り付けます★★
+   設定・通信周り
 ========================================= */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwjuZEq2wZ8UsFOOwubo-Dfs4LJYr_RWnsjLnntH7d9fqa4oCrxgB1ByGn9buP3RwZKig/exec";
-// 例: const GAS_URL = "https://script.google.com/macros/s/AKfyc.../exec";
+
+const CATS = { memory:'記憶力系', reflex:'直感力・判断力系', calc:'計算力系', attention:'注意力・空間認識系' };
 
 /* =========================================
-   ゲームデータ定義（全8種）
+   ユーティリティ
+========================================= */
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// localStorageが使えない環境（プライベートブラウズ等）でも落ちないようにする
+const ls = {
+    get: (k, d=null) => { try { const v = localStorage.getItem(k); return v===null ? d : v; } catch(e) { return d; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} }
+};
+
+/* =========================================
+   音声（Web Audio API）※ユーザー操作まで生成を遅らせる
+========================================= */
+let audioCtx = null;
+function getCtx() {
+    if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch(e) { audioCtx = null; }
+    }
+    return audioCtx;
+}
+let bgmInterval = null;
+let bgmOn = false;
+
+const SE = {
+    init: () => { const c = getCtx(); if (c && c.state === 'suspended') c.resume().catch(()=>{}); },
+    tone: (freq, type, dur, vol=0.1) => {
+        if (!bgmOn) return;
+        const c = getCtx(); if (!c) return;
+        try {
+            const osc = c.createOscillator(); const gain = c.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            osc.connect(gain); gain.connect(c.destination);
+            gain.gain.setValueAtTime(vol, c.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+            osc.start(); osc.stop(c.currentTime + dur);
+        } catch(e) {}
+    },
+    click: () => SE.tone(600, 'sine', 0.1),
+    correct: () => { SE.tone(800, 'sine', 0.1); setTimeout(()=>SE.tone(1200, 'sine', 0.15), 100); },
+    wrong: () => SE.tone(300, 'sawtooth', 0.3, 0.2),
+    finish: () => { SE.tone(500, 'square', 0.1); setTimeout(()=>SE.tone(700, 'square', 0.3), 150); }
+};
+
+function startBGM() {
+    if (!bgmOn) return; stopBGM();
+    const c = getCtx(); if (!c) return;
+    const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
+    let step = 0;
+    bgmInterval = setInterval(() => { SE.tone(notes[step % notes.length], 'triangle', 0.2, 0.03); step++; }, 500);
+}
+function stopBGM() { clearInterval(bgmInterval); }
+
+/* =========================================
+   ゲームデータ（全32種／各カテゴリ8種）
 ========================================= */
 const GAMES = {
-    memory_diary: {
-        id: 'memory_diary', category: 'memory', title: '昨日、何食べた？', desc: '一瞬表示される予定を覚えよう！',
+    // ---- 記憶力系 ----
+    m1: { cat:'memory', id:'m1', title:'昨日、何食べた？', desc:'日記を覚えて質問に答えよう', unit:'点',
         play: (e) => {
-            const foods = ['🍎りんご', '🍜ラーメン', '🍛カレー', '🍣寿司', '🍔バーガー', '🥗サラダ'];
-            const days = ['月', '火', '水'];
-            let tD = '', tF = '';
-            e.render(`<p>3日間の食事を覚えて！(3秒)</p><table style="width:100%;font-size:20px;border:1px solid #ccc;">${days.map(d=>`<tr><td style="border:1px solid #ccc">${d}曜</td><td style="border:1px solid #ccc" id="day-${d}"></td></tr>`).join('')}</table>`);
-            days.forEach(d => { const f=foods[Math.floor(Math.random()*foods.length)]; document.getElementById(`day-${d}`).innerText=f; if(Math.random()>0.5||tD===''){tD=d;tF=f;} });
+            const f = ['🍎', '🍜', '🍛', '🍣', '🍔', '🥗']; const d = ['月', '火', '水'];
+            const foods = {};
+            d.forEach(x => { foods[x] = f[Math.floor(Math.random()*f.length)]; });
+            const td = d[Math.floor(Math.random()*d.length)]; const tf = foods[td];
+            e.html(`<p>3日間の食事を覚えて！(3秒)</p><table border="1" width="100%" style="font-size:24px; text-align:center">${d.map(x=>`<tr><td>${x}曜</td><td>${foods[x]}</td></tr>`).join('')}</table>`);
             setTimeout(() => {
-                const opt=[...foods].sort(()=>0.5-Math.random()).slice(0,4); if(!opt.includes(tF)){opt[0]=tF;opt.sort(()=>0.5-Math.random());}
-                e.render(`<p style="font-size:20px;font-weight:bold;">${tD}曜に食べたのは？</p><div class="grid-2x2">${opt.map(o=>`<button onclick="app.checkAnswer('${o===tF}')">${o}</button>`).join('')}</div>`);
+                let opt = [...f].sort(()=>0.5-Math.random()).slice(0,4); if(!opt.includes(tf)) {opt[0]=tf; opt.sort(()=>0.5-Math.random());}
+                e.html(`<p><b>${td}曜</b>に食べたのは？</p><div class="grid-2x2">${opt.map(o=>`<button style="font-size:30px" onclick="app.ans(${o===tf})">${o}</button>`).join('')}</div>`);
             }, 3000);
         }
     },
-    reflex_arrow: {
-        id: 'reflex_arrow', category: 'reflex', title: 'あべこべ矢印', desc: '青は同じ方向、赤は【逆】！',
+    m2: { cat:'memory', id:'m2', title:'順番通りにタップ', desc:'光った順番を覚えて押そう', unit:'コンボ',
+        state: { seq:[], step:0, level:1 },
         play: (e) => {
-            const arr = [{d:'UP',i:'⬆️'}, {d:'DOWN',i:'⬇️'}, {d:'LEFT',i:'⬅️'}, {d:'RIGHT',i:'➡️'}];
-            const isRev = Math.random()>0.5; const t = arr[Math.floor(Math.random()*arr.length)];
-            let cD = t.d; if(isRev){ cD = cD==='UP'?'DOWN':cD==='DOWN'?'UP':cD==='LEFT'?'RIGHT':'LEFT'; }
-            e.render(`<p>${isRev?'<span style="color:red;font-weight:bold">赤は逆方向！</span>':'<span style="color:blue;font-weight:bold">青は同じ方向！</span>'}</p><div class="arrow-display" style="color:${isRev?'red':'blue'}">${t.i}</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;max-width:200px;margin:0 auto;"><div></div><button onclick="app.checkAnswer('${cD==='UP'}')">⬆️</button><div></div><button onclick="app.checkAnswer('${cD==='LEFT'}')">⬅️</button><button onclick="app.checkAnswer('${cD==='DOWN'}')">⬇️</button><button onclick="app.checkAnswer('${cD==='RIGHT'}')">➡️</button></div>`);
+            let s = GAMES.m2.state; s.seq = []; s.level = 1;
+            const nextLevel = () => {
+                s.step = 0; s.seq.push(Math.floor(Math.random()*4));
+                e.html(`<p>レベル ${s.level}</p><div class="grid-2x2">${[0,1,2,3].map(i=>`<div id="btn-${i}" class="seq-btn" onclick="app.ans('m2',${i})"></div>`).join('')}</div>`);
+                let delay = 500;
+                s.seq.forEach((btnIdx, i) => {
+                    setTimeout(() => {
+                        const b = document.getElementById(`btn-${btnIdx}`);
+                        if(b) { b.classList.add('lit'); SE.click(); setTimeout(()=>b.classList.remove('lit'), 300); }
+                    }, delay + (i * 600));
+                });
+            };
+            e.customAns = (val) => {
+                if(val === s.seq[s.step]) { s.step++; SE.click(); if(s.step === s.seq.length) { s.level++; app.addScore(1); setTimeout(nextLevel, 1000); } }
+                else { app.endGame(); }
+            };
+            nextLevel();
         }
     },
-    reflex_stroop: {
-        id: 'reflex_stroop', category: 'reflex', title: '色と文字の一致', desc: '文字の意味ではなく【色】を答えろ！',
+    m3: { cat:'memory', id:'m3', title:'そらごころ神経衰弱', desc:'同じ絵柄を揃えよう', unit:'点',
+        state: { cards:[], openIdx:-1, pairs:0, lock:false },
         play: (e) => {
-            const cols = [{n:'あか',c:'red'},{n:'あお',c:'blue'},{n:'みどり',c:'green'},{n:'きいろ',c:'#d4b500'}];
-            const t = cols[Math.floor(Math.random()*cols.length)]; const c = cols[Math.floor(Math.random()*cols.length)];
-            e.render(`<p>文字に塗られている【色】は？</p><div class="stroop-text" style="color:${c.c}">${t.n}</div><div class="grid-2x2">${cols.map(x=>`<button onclick="app.checkAnswer('${x.c===c.c}')">${x.n}</button>`).join('')}</div>`);
+            const icons = ['☀️','☁️','☂️','⛄','⚡','🌪️','🌸','🍁'];
+            let s = GAMES.m3.state; s.pairs = 0; s.openIdx = -1; s.lock = false;
+            let deck = [...icons.slice(0,8), ...icons.slice(0,8)].sort(()=>0.5-Math.random());
+            s.cards = deck;
+            const render = () => e.html(`<div class="board-4x4">${deck.map((_,i)=>`<div class="card" id="c-${i}" onclick="app.ans('m3',${i})">❓</div>`).join('')}</div>`);
+            render();
+            e.customAns = (i) => {
+                if(s.lock || document.getElementById(`c-${i}`).innerText !== '❓') return;
+                SE.click(); const el = document.getElementById(`c-${i}`); el.innerText = s.cards[i]; el.classList.add('open');
+                if(s.openIdx === -1) { s.openIdx = i; }
+                else {
+                    if(s.cards[s.openIdx] === s.cards[i]) { s.pairs++; app.addScore(10); s.openIdx = -1; SE.correct(); if(s.pairs===8) app.endGame(); }
+                    else {
+                        s.lock = true; SE.wrong();
+                        setTimeout(() => { document.getElementById(`c-${s.openIdx}`).innerText='❓'; document.getElementById(`c-${s.openIdx}`).classList.remove('open'); el.innerText='❓'; el.classList.remove('open'); s.openIdx=-1; s.lock=false; }, 800);
+                    }
+                }
+            };
         }
     },
-    calc_make10: {
-        id: 'calc_make10', category: 'calc', title: '記号を当てろ', desc: '式が成り立つように＋－×÷を！',
+    m4: { cat:'memory', id:'m4', title:'まばたきワード', desc:'一瞬だけ表示されることばを当てよう', unit:'点',
         play: (e) => {
-            const ops = [{o:'+',c:(a,b)=>a+b},{o:'-',c:(a,b)=>a-b},{o:'×',c:(a,b)=>a*b}];
-            const t = ops[Math.floor(Math.random()*ops.length)]; const a=Math.floor(Math.random()*9)+1; const b=Math.floor(Math.random()*9)+1; const ans=t.c(a,b);
-            e.render(`<p>？に入る記号は？</p><div style="font-size:32px;font-weight:bold;margin:20px;">${a} <span style="color:red">？</span> ${b} ＝ ${ans}</div><div class="grid-2x2"><button onclick="app.checkAnswer('${t.o==='+'}')">＋</button><button onclick="app.checkAnswer('${t.o==='-'}')">－</button><button onclick="app.checkAnswer('${t.o==='×'}')">×</button><button onclick="app.checkAnswer('${t.o==='÷'}')">÷</button></div>`);
+            const words = ['あそび', 'ことば', 'ともだち', 'からだ', 'こころ', 'えがお', 'そら', 'きずな'];
+            const target = words[Math.floor(Math.random()*words.length)];
+            e.html(`<p>よく見て！</p><div style="font-size:40px; font-weight:bold; margin:30px 0;">3</div>`);
+            setTimeout(()=>e.html(`<div style="font-size:40px; font-weight:bold; margin:30px 0;">2</div>`), 500);
+            setTimeout(()=>e.html(`<div style="font-size:40px; font-weight:bold; margin:30px 0;">1</div>`), 1000);
+            setTimeout(()=>e.html(`<div style="font-size:40px; font-weight:bold; margin:30px 0;">${target}</div>`), 1500);
+            setTimeout(() => {
+                let opt = [...words].sort(()=>0.5-Math.random()).slice(0,4); if(!opt.includes(target)) {opt[0]=target; opt.sort(()=>0.5-Math.random());}
+                e.html(`<p>いまの「ことば」は？</p><div class="grid-2x2">${opt.map(o=>`<button style="font-size:24px" onclick="app.ans(${o===target})">${o}</button>`).join('')}</div>`);
+            }, 1800);
         }
     },
-    attention_odd: {
-        id: 'attention_odd', category: 'attention', title: '仲間外れ探し', desc: '１つだけ違う漢字を見つけ出せ！',
+    m5: { cat:'memory', id:'m5', title:'顔と名前記憶', desc:'3人の名前を覚えよう', unit:'点',
         play: (e) => {
-            const p = [['犬','太'],['白','百'],['微','徴']]; const pr = p[Math.floor(Math.random()*p.length)];
-            const b = pr[0], o = pr[1]; const oddI = Math.floor(Math.random()*20);
-            let h = '<div class="odd-grid">'; for(let i=0;i<20;i++){ h+=`<div class="odd-cell" onclick="app.checkAnswer('${i===oddI}')">${i===oddI?o:b}</div>`; } h+='</div>';
-            e.render(`<p>違う文字をタップ！</p>${h}`);
+            const faces = ['😀','😎','🥸','🧑‍🦰','👩‍🦱','🧔','👵','👴'].sort(()=>0.5-Math.random()).slice(0,3);
+            const names = ['たろう','はなこ','けんじ','みどり','ゆうき','さくら','いちろう','なな'].sort(()=>0.5-Math.random()).slice(0,3);
+            e.html(`<p>3人の名前を覚えて！(3秒)</p>${faces.map((f,i)=>`<div style="font-size:26px;margin:8px;">${f} ： ${names[i]}</div>`).join('')}`);
+            setTimeout(() => {
+                const qi = Math.floor(Math.random()*3);
+                let opt = [...names].sort(()=>0.5-Math.random()).slice(0,4); if(!opt.includes(names[qi])) {opt[0]=names[qi]; opt.sort(()=>0.5-Math.random());}
+                e.html(`<p>この人の名前は？</p><div style="font-size:50px;margin:10px;">${faces[qi]}</div><div class="grid-2x2">${opt.map(o=>`<button onclick="app.ans(${o===names[qi]})">${o}</button>`).join('')}</div>`);
+            }, 3000);
+        }
+    },
+    m6: { cat:'memory', id:'m6', title:'さかさま数字', desc:'数字を覚えて逆から並べよう', unit:'点',
+        play: (e) => {
+            const digits = Array.from({length:4}, ()=>Math.floor(Math.random()*9)+1);
+            const seq = digits.join(''); const rev = [...digits].reverse().join('');
+            e.html(`<p>数字を覚えて！(2.5秒)</p><div style="font-size:44px;font-weight:bold;letter-spacing:8px;">${seq}</div>`);
+            setTimeout(() => {
+                let opt = new Set([rev, seq]);
+                while(opt.size < 4) opt.add(Array.from({length:4},()=>Math.floor(Math.random()*9)+1).join(''));
+                let arr = [...opt].sort(()=>0.5-Math.random());
+                e.html(`<p>逆から並べると？</p><div class="grid-2x2">${arr.map(o=>`<button style="font-size:22px" onclick="app.ans(${o===rev})">${o}</button>`).join('')}</div>`);
+            }, 2500);
+        }
+    },
+    m7: { cat:'memory', id:'m7', title:'買い物リスト', desc:'覚えた品物に無いものは？', unit:'点',
+        play: (e) => {
+            const items = ['🥛','🍞','🥚','🧀','🍅','🥕','🍌','🧻','🧴','🍪'].sort(()=>0.5-Math.random());
+            const list = items.slice(0,4); const fake = items[4];
+            e.html(`<p>買い物リストを覚えて！(3秒)</p><div style="font-size:40px;">${list.join(' ')}</div>`);
+            setTimeout(() => {
+                let opt = [...list.slice(0,3), fake].sort(()=>0.5-Math.random());
+                e.html(`<p>リストに無かったのは？</p><div class="grid-2x2">${opt.map(o=>`<button style="font-size:34px" onclick="app.ans(${o===fake})">${o}</button>`).join('')}</div>`);
+            }, 3000);
+        }
+    },
+    m8: { cat:'memory', id:'m8', title:'かくれんぼ記憶', desc:'光った場所を覚えて指させ', unit:'点',
+        play: (e) => {
+            const pos = Math.floor(Math.random()*9);
+            e.html(`<p>光った場所を覚えて！</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:180px;margin:10px auto;">${Array.from({length:9},(_,i)=>`<div style="height:50px;border-radius:6px;background:${i===pos?'#f1c40f':'#eee'};"></div>`).join('')}</div>`);
+            setTimeout(() => {
+                e.html(`<p>さっき光っていたのは？</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:180px;margin:10px auto;">${Array.from({length:9},(_,i)=>`<div style="height:50px;border-radius:6px;background:#eee;cursor:pointer;" onclick="app.ans(${i===pos})"></div>`).join('')}</div>`);
+            }, 1200);
+        }
+    },
+
+    // ---- 直感力・判断力系 ----
+    r1: { cat:'reflex', id:'r1', title:'あべこべ矢印', desc:'青は同じ、赤は逆方向へ！(スワイプでもOK)', unit:'点',
+        state: { correct: null },
+        play: (e) => {
+            const d=[{k:'UP',i:'⬆️'},{k:'DOWN',i:'⬇️'},{k:'LEFT',i:'⬅️'},{k:'RIGHT',i:'➡️'}];
+            const rev=Math.random()>0.5; const t=d[Math.floor(Math.random()*d.length)];
+            let c=t.k; if(rev) { c = c==='UP'?'DOWN':c==='DOWN'?'UP':c==='LEFT'?'RIGHT':'LEFT'; }
+            GAMES.r1.state.correct = c;
+            e.html(`<p>${rev?'<span style="color:red;font-weight:bold">赤は逆！</span>':'<span style="color:blue;font-weight:bold">青は同じ！</span>'}</p><div style="font-size:80px;color:${rev?'red':'blue'}">${t.i}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;width:200px;margin:10px auto">
+            <div></div><button onclick="app.ans(${c==='UP'})">⬆️</button><div></div><button onclick="app.ans(${c==='LEFT'})">⬅️</button><button onclick="app.ans(${c==='DOWN'})">⬇️</button><button onclick="app.ans(${c==='RIGHT'})">➡️</button></div>
+            <p style="font-size:12px;color:#999;margin-top:8px;">👆 画面をスワイプしても回答できます</p>`);
+        },
+        onSwipe: (dir) => { app.ans(dir === GAMES.r1.state.correct); }
+    },
+    r2: { cat:'reflex', id:'r2', title:'色と文字の一致', desc:'文字の意味ではなく「色」を答えろ', unit:'点',
+        play: (e) => {
+            const cols=[{n:'あか',c:'red'},{n:'あお',c:'blue'},{n:'みどり',c:'green'},{n:'きいろ',c:'#d4b500'}];
+            const text=cols[Math.floor(Math.random()*cols.length)]; const color=cols[Math.floor(Math.random()*cols.length)];
+            e.html(`<p>文字に塗られている【色】は？</p><div style="font-size:40px;font-weight:bold;margin:20px;color:${color.c}">${text.n}</div>
+            <div class="grid-2x2">${cols.map(x=>`<button onclick="app.ans(${x.c===color.c})">${x.n}</button>`).join('')}</div>`);
+        }
+    },
+    r3: { cat:'reflex', id:'r3', title:'後出しジャンケン', desc:'指示通りに手を出そう', unit:'点',
+        play: (e) => {
+            const h=[{n:'グー',i:'✊'},{n:'チョキ',i:'✌️'},{n:'パー',i:'🖐️'}];
+            const win = Math.random()>0.5; const eHand=h[Math.floor(Math.random()*h.length)];
+            let ans = '';
+            if(win) { ans = eHand.n==='グー'?'パー':eHand.n==='チョキ'?'グー':'チョキ'; }
+            else { ans = eHand.n==='グー'?'チョキ':eHand.n==='チョキ'?'パー':'グー'; }
+            e.html(`<p style="font-size:24px;font-weight:bold;color:${win?'red':'blue'}">${win?'勝って！':'負けて！'}</p><div style="font-size:80px">${eHand.i}</div>
+            <div class="grid-2x2" style="grid-template-columns:1fr 1fr 1fr; margin-top:20px;">${h.map(x=>`<button style="font-size:30px" onclick="app.ans(${x.n===ans})">${x.i}</button>`).join('')}</div>`);
+        }
+    },
+    r4: { cat:'reflex', id:'r4', title:'信号シグナル', desc:'青になったら即タップ！お手付き注意', unit:'点',
+        state: { timer:null, wait:true },
+        play: (e) => {
+            let s = GAMES.r4.state; s.wait = true;
+            e.html(`<div id="sig" style="width:150px;height:150px;border-radius:50%;background:red;margin:20px auto;"></div><button id="sig-btn" style="height:80px;font-size:24px" onclick="app.ans('r4')">タップ！</button>`);
+            const delay = Math.random() * 2000 + 1000; // 1~3s
+            const isFake = Math.random() > 0.7; // 30% yellow
+            s.timer = setTimeout(() => {
+                const sig = document.getElementById('sig'); if(!sig) return;
+                sig.style.background = isFake ? 'yellow' : 'green';
+                if(!isFake) s.wait = false;
+                else { setTimeout(() => { const sig2 = document.getElementById('sig'); if(sig2) sig2.style.background = 'red'; }, 500); }
+            }, delay);
+            e.customAns = () => {
+                if(s.wait) { clearTimeout(s.timer); app.addScore(-10); SE.wrong(); app.next(); } // お手付き
+                else { app.addScore(20); SE.correct(); app.next(); } // 成功
+            };
+        }
+    },
+    r5: { cat:'reflex', id:'r5', title:'ターゲットタップ', desc:'的が光ったら即タップ！', unit:'点',
+        state: { timer:null, ready:false },
+        play: (e) => {
+            let s = GAMES.r5.state; s.ready = false;
+            const x = Math.floor(Math.random()*70)+10, y = Math.floor(Math.random()*40)+10;
+            e.html(`<div style="position:relative;width:100%;height:160px;background:#eef;border-radius:8px;">
+            <div id="tgt" style="position:absolute;left:${x}%;top:${y}%;width:50px;height:50px;border-radius:50%;background:#ccc;transition:background .1s;" onclick="app.ans('r5')"></div></div><p style="margin-top:10px;color:#888">光るまで待って…</p>`);
+            const delay = Math.random()*1500 + 800;
+            s.timer = setTimeout(() => { const t=document.getElementById('tgt'); if(t){ t.style.background='#e74c3c'; t.style.boxShadow='0 0 15px #e74c3c'; s.ready=true; } }, delay);
+            e.customAns = () => {
+                if(s.ready) { app.addScore(20); SE.correct(); } else { SE.wrong(); app.addScore(-5); }
+                clearTimeout(s.timer); app.next();
+            };
+        }
+    },
+    r6: { cat:'reflex', id:'r6', title:'なぞなぞ早押し', desc:'ひらめきで即答しよう', unit:'点',
+        play: (e) => {
+            const qs=[
+                {q:'空を飛ぶ乗り物は？',a:'ひこうき',o:['でんしゃ','ふね','じてんしゃ']},
+                {q:'冷たくて白い、冬に降るものは？',a:'ゆき',o:['あめ','くも','かぜ']},
+                {q:'夜空に光る丸いものは？',a:'つき',o:['たいよう','ほし','くも']},
+                {q:'水の中を泳ぐ生き物は？',a:'さかな',o:['とり','うし','ねこ']},
+                {q:'朝によく鳴く鳥は？',a:'にわとり',o:['ふくろう','こうもり','ねずみ']}
+            ];
+            const q = qs[Math.floor(Math.random()*qs.length)];
+            let opt = [q.a, ...q.o].sort(()=>0.5-Math.random());
+            e.html(`<p style="font-size:20px;">${q.q}</p><div class="grid-2x2">${opt.map(o=>`<button onclick="app.ans(${o===q.a})">${o}</button>`).join('')}</div>`);
+        }
+    },
+    r7: { cat:'reflex', id:'r7', title:'マナー早押しクイズ', desc:'OK？それともNG？すぐ判断！', unit:'点',
+        play: (e) => {
+            const qs=[
+                {t:'エレベーターでは降りる人が先',ok:true},{t:'電車で大声で通話する',ok:false},
+                {t:'食事の前に「いただきます」',ok:true},{t:'人の話を最後まで聞かずに遮る',ok:false},
+                {t:'エスカレーターで手すりにつかまる',ok:true},{t:'ゴミを道に捨てる',ok:false},
+                {t:'約束の時間より早めに着く',ok:true},{t:'借りた物を黙って自分の物にする',ok:false}
+            ];
+            const q = qs[Math.floor(Math.random()*qs.length)];
+            e.html(`<p style="font-size:18px;">${q.t}</p><div class="grid-2x2" style="grid-template-columns:1fr 1fr;"><button style="background:#2ecc71" onclick="app.ans(${q.ok===true})">OK 👍</button><button style="background:#e74c3c" onclick="app.ans(${q.ok===false})">NG 👎</button></div>`);
+        }
+    },
+    r8: { cat:'reflex', id:'r8', title:'同じ絵さがし', desc:'お手本と同じ絵を素早く選べ', unit:'点',
+        play: (e) => {
+            const icons=['🍎','🍊','🍇','🍉','🍋','🍓','🍑','🍒'];
+            const target = icons[Math.floor(Math.random()*icons.length)];
+            let opt = [...icons].sort(()=>0.5-Math.random()).slice(0,4); if(!opt.includes(target)){opt[0]=target; opt.sort(()=>0.5-Math.random());}
+            e.html(`<p>お手本と同じ絵は？</p><div style="font-size:50px;margin:10px;">${target}</div><div class="grid-2x2">${opt.map(o=>`<button style="font-size:34px" onclick="app.ans(${o===target})">${o}</button>`).join('')}</div>`);
+        }
+    },
+
+    // ---- 計算力系 ----
+    c1: { cat:'calc', id:'c1', title:'ぴったりメイク10', desc:'記号を当てて答えを作れ', unit:'点',
+        play: (e) => {
+            const ops=[{o:'+',c:(a,b)=>a+b},{o:'-',c:(a,b)=>a-b},{o:'×',c:(a,b)=>a*b}];
+            const t=ops[Math.floor(Math.random()*ops.length)]; const a=Math.floor(Math.random()*9)+1; const b=Math.floor(Math.random()*9)+1; const ans=t.c(a,b);
+            e.html(`<p>？に入る記号は？</p><div style="font-size:32px;font-weight:bold;margin:20px;">${a} <span style="color:red">？</span> ${b} ＝ ${ans}</div>
+            <div class="grid-2x2"><button onclick="app.ans(${t.o==='+'})">＋</button><button onclick="app.ans(${t.o==='-'})">－</button><button onclick="app.ans(${t.o==='×'})">×</button><button onclick="app.ans(${t.o==='÷'})">÷</button></div>`);
+        }
+    },
+    c2: { cat:'calc', id:'c2', title:'お釣りはいくら？', desc:'レジ打ち暗算！', unit:'点',
+        play: (e) => {
+            const cost = (Math.floor(Math.random()*80)+10)*10;
+            const paid = cost + (Math.floor(Math.random()*4)+1)*100 + (Math.random()>0.5?50:0);
+            const ch = paid - cost;
+            let opt = [ch, ch+100, ch-100, ch+50].sort(()=>0.5-Math.random());
+            e.html(`<p>お会計：<b>${cost}円</b></p><p>お預かり：<b>${paid}円</b></p><p>お釣りは？</p>
+            <div class="grid-2x2">${opt.map(o=>`<button onclick="app.ans(${o===ch})">${o}円</button>`).join('')}</div>`);
+        }
+    },
+    c3: { cat:'calc', id:'c3', title:'虫食い算スピード', desc:'[ ? ] に入る数字は？', unit:'点',
+        play: (e) => {
+            const isMul = Math.random()>0.5;
+            const a = Math.floor(Math.random()*9)+1; const b = Math.floor(Math.random()*9)+1;
+            const ans = isMul ? a*b : a+b;
+            const hideA = Math.random()>0.5;
+            const hidden = hideA ? a : b;
+            let opt = [hidden, hidden+1, hidden-1, hidden+2].sort(()=>0.5-Math.random());
+            e.html(`<p style="font-size:32px;font-weight:bold;margin:20px;">${hideA?'[ ? ]':a} ${isMul?'×':'＋'} ${hideA?b:'[ ? ]'} ＝ ${ans}</p>
+            <div class="grid-2x2">${opt.map(o=>`<button onclick="app.ans(${o===hidden})">${o}</button>`).join('')}</div>`);
+        }
+    },
+    c4: { cat:'calc', id:'c4', title:'どっちが大きい？', desc:'計算結果が大きい方を選べ', unit:'点',
+        play: (e) => {
+            const gen = () => { const a=Math.floor(Math.random()*9)+1, b=Math.floor(Math.random()*9)+1; return {s:`${a} × ${b}`, v:a*b}; };
+            let l=gen(), r=gen(); while(l.v===r.v) r=gen();
+            e.html(`<p>答えが大きい方は？</p><div class="grid-2x2" style="margin-top:20px"><button style="height:100px;font-size:24px" onclick="app.ans(${l.v>r.v})">${l.s}</button><button style="height:100px;font-size:24px" onclick="app.ans(${r.v>l.v})">${r.s}</button></div>`);
+        }
+    },
+    c5: { cat:'calc', id:'c5', title:'暗算チェイン', desc:'連続でたし算・ひき算に答えろ', unit:'点',
+        play: (e) => {
+            const isAdd = Math.random()>0.5; const a=Math.floor(Math.random()*20)+1, b=Math.floor(Math.random()*20)+1;
+            const x = isAdd ? a : Math.max(a,b), y = isAdd ? b : Math.min(a,b);
+            const ans = isAdd ? x+y : x-y;
+            let opt = [ans, ans+1, ans-1, ans+2].sort(()=>0.5-Math.random());
+            e.html(`<p style="font-size:32px;font-weight:bold;">${x} ${isAdd?'＋':'－'} ${y} ＝ ？</p><div class="grid-2x2">${opt.map(o=>`<button onclick="app.ans(${o===ans})">${o}</button>`).join('')}</div>`);
+        }
+    },
+    c6: { cat:'calc', id:'c6', title:'何番目に大きい？', desc:'数字を比べて順位を当てろ', unit:'点',
+        play: (e) => {
+            const nums = Array.from({length:4}, ()=>Math.floor(Math.random()*90)+10);
+            const rank = Math.floor(Math.random()*4)+1;
+            const sorted = [...nums].sort((a,b)=>b-a);
+            const answer = sorted[rank-1];
+            e.html(`<p>${rank}番目に大きい数字は？</p><div class="grid-2x2">${nums.map(n=>`<button onclick="app.ans(${n===answer})">${n}</button>`).join('')}</div>`);
+        }
+    },
+    c7: { cat:'calc', id:'c7', title:'割り勘計算', desc:'一人分の金額を暗算しよう', unit:'点',
+        play: (e) => {
+            const people = [2,3,4,5][Math.floor(Math.random()*4)];
+            const each = (Math.floor(Math.random()*20)+5)*100;
+            const total = each*people;
+            let opt = [each, each+100, each-100, each+200].sort(()=>0.5-Math.random());
+            e.html(`<p>合計 <b>${total}円</b> を ${people}人 で割り勘。<br>一人分は？</p><div class="grid-2x2">${opt.map(o=>`<button onclick="app.ans(${o===each})">${o}円</button>`).join('')}</div>`);
+        }
+    },
+    c8: { cat:'calc', id:'c8', title:'割引ざっくり暗算', desc:'割引後の値段をすぐ計算', unit:'点',
+        play: (e) => {
+            const price = (Math.floor(Math.random()*18)+2)*100;
+            const pct = [10,20,30,50][Math.floor(Math.random()*4)];
+            const ans = Math.round(price*(100-pct)/100);
+            let opt = [ans, ans+100, ans-100, Math.round(price*pct/100)].sort(()=>0.5-Math.random());
+            e.html(`<p>${price}円の${pct}％引きはいくら？</p><div class="grid-2x2">${opt.map(o=>`<button onclick="app.ans(${o===ans})">${o}円</button>`).join('')}</div>`);
+        }
+    },
+
+    // ---- 注意力・空間認識系 ----
+    a1: { cat:'attention', id:'a1', title:'1つだけ違う仲間外れ', desc:'違う文字を見つけ出せ', unit:'点',
+        play: (e) => {
+            const p=[['犬','太'],['白','百'],['微','徴'],['大','犬']]; const pr=p[Math.floor(Math.random()*p.length)];
+            const oddI = Math.floor(Math.random()*20);
+            let h = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;width:100%;max-width:300px;">';
+            for(let i=0;i<20;i++){ h+=`<div style="font-size:24px;padding:10px;background:#eee;border-radius:5px;cursor:pointer" onclick="app.ans(${i===oddI})">${i===oddI?pr[1]:pr[0]}</div>`; }
+            e.html(`<p>1つだけ違う文字をタップ！</p>${h}</div>`);
+        }
+    },
+    a2: { cat:'attention', id:'a2', title:'シルエット回転', desc:'右に90度回した形は？', unit:'点',
+        play: (e) => {
+            const s=['F','P','L','J','R']; const t=s[Math.floor(Math.random()*s.length)];
+            e.html(`<p>右に90度回すとどうなる？</p><div style="font-size:60px;font-weight:bold;margin:20px;">${t}</div>
+            <div class="grid-2x2"><button style="font-size:40px;transform:rotate(90deg)" onclick="app.ans(true)">${t}</button><button style="font-size:40px;transform:rotate(270deg)" onclick="app.ans(false)">${t}</button></div>`);
+        }
+    },
+    a3: { cat:'attention', id:'a3', title:'数字を順にノック', desc:'1から順番にタップ', unit:'クリア',
+        state: { cur:1, max:9 },
+        play: (e) => {
+            let s = GAMES.a3.state; s.cur = 1;
+            let nums = Array.from({length:s.max}, (_,i)=>i+1).sort(()=>0.5-Math.random());
+            e.html(`<p>1から順番に押して！</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%;max-width:250px;">
+            ${nums.map(n=>`<button id="n-${n}" style="height:70px;font-size:24px;background:#eee;color:#333;" onclick="app.ans('a3',${n})">${n}</button>`).join('')}</div>`);
+            e.customAns = (n) => {
+                if(n === s.cur) {
+                    SE.click(); document.getElementById(`n-${n}`).style.visibility = 'hidden';
+                    s.cur++; if(s.cur > s.max) { app.addScore(100); SE.correct(); app.endGame(); }
+                } else { SE.wrong(); }
+            };
+        }
+    },
+    a4: { cat:'attention', id:'a4', title:'ブロック数え', desc:'見えない部分も含めて何個？', unit:'点',
+        play: (e) => {
+            const w=2, d=2; let total=0; let html='<div style="display:inline-block;text-align:center;background:#fff;padding:10px;border:2px solid #ccc;">';
+            for(let y=0;y<d;y++){
+                html+='<div style="display:flex;">';
+                for(let x=0;x<w;x++){
+                    const h = Math.floor(Math.random()*3)+1; total+=h;
+                    html+=`<div style="width:40px;height:40px;border:1px solid #999;background:#e0e0e0;margin:2px;display:flex;align-items:center;justify-content:center;font-weight:bold">${h}段</div>`;
+                }
+                html+='</div>';
+            }
+            html+='</div>';
+            let opt = [total, total+1, total-1, total+2].sort(()=>0.5-Math.random());
+            e.html(`<p>上から見た図です。ブロックは全部で何個？</p>${html}<div class="grid-2x2" style="margin-top:20px">${opt.map(o=>`<button onclick="app.ans(${o===total})">${o}個</button>`).join('')}</div>`);
+        }
+    },
+    a5: { cat:'attention', id:'a5', title:'ひらがな探し', desc:'指定された文字を素早く探せ', unit:'点',
+        play: (e) => {
+            const pool = ['あ','お','め','ぬ','ね','わ','れ','る'];
+            const target = pool[Math.floor(Math.random()*pool.length)];
+            const others = pool.filter(c=>c!==target);
+            const cells = Array.from({length:24}, ()=>others[Math.floor(Math.random()*others.length)]);
+            const pos = Math.floor(Math.random()*24); cells[pos] = target;
+            e.html(`<p>「${target}」を探してタップ！</p><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%;max-width:300px;">${cells.map((c,i)=>`<div style="font-size:20px;padding:8px 0;background:#eee;border-radius:5px;cursor:pointer;" onclick="app.ans(${i===pos})">${c}</div>`).join('')}</div>`);
+        }
+    },
+    a6: { cat:'attention', id:'a6', title:'左右見比べ', desc:'上下の列で違う絵を探せ', unit:'点',
+        play: (e) => {
+            const icons=['🍎','🍊','🍇','🍉','🍋','🍓'];
+            const row = Array.from({length:5}, ()=>icons[Math.floor(Math.random()*icons.length)]);
+            const diffPos = Math.floor(Math.random()*5);
+            let diffIcon; do { diffIcon = icons[Math.floor(Math.random()*icons.length)]; } while(diffIcon===row[diffPos]);
+            const row2 = [...row]; row2[diffPos] = diffIcon;
+            e.html(`<p>上と違う絵を下から探してタップ！</p>
+            <div style="display:flex;gap:6px;justify-content:center;font-size:28px;">${row.map(r=>`<div>${r}</div>`).join('')}</div>
+            <div style="display:flex;gap:6px;justify-content:center;font-size:28px;margin-top:10px;">${row2.map((r,i)=>`<div onclick="app.ans(${i===diffPos})" style="cursor:pointer">${r}</div>`).join('')}</div>`);
+        }
+    },
+    a7: { cat:'attention', id:'a7', title:'形かぞえ', desc:'指定の形がいくつあるか数えよう', unit:'点',
+        play: (e) => {
+            const shapes=['⭐','⚫','⬛','🔺','💠'];
+            const target = shapes[Math.floor(Math.random()*shapes.length)];
+            const count = Math.floor(Math.random()*5)+3;
+            let cells = Array.from({length:16}, ()=>shapes[Math.floor(Math.random()*shapes.length)]);
+            cells = cells.map(c=>c===target?shapes[(shapes.indexOf(target)+1)%shapes.length]:c);
+            for(let i=0;i<count;i++) cells[i]=target;
+            cells.sort(()=>0.5-Math.random());
+            let opt = [...new Set([count, count+1, Math.max(1,count-1), count+2])].sort(()=>0.5-Math.random());
+            e.html(`<p>「${target}」はいくつある？</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;max-width:260px;font-size:26px;">${cells.map(c=>`<div>${c}</div>`).join('')}</div><div class="grid-2x2" style="margin-top:15px">${opt.map(o=>`<button onclick="app.ans(${o===count})">${o}個</button>`).join('')}</div>`);
+        }
+    },
+    a8: { cat:'attention', id:'a8', title:'左右対称チェック', desc:'左右対称な形か見分けよう', unit:'点',
+        play: (e) => {
+            const symTargets=[['⬛','⬛','⬛','⬛','⬛'],['🟦','🟩','⚪','🟩','🟦'],['🔺','🔵','⬜','🔵','🔺']];
+            const asymTargets=[['🟦','🟩','⚪','🟨','🟥'],['🔺','🔵','⬜','🟢','🔺'],['⬛','⬜','⬛','⬛','⬛']];
+            const isSym = Math.random()>0.5;
+            const row = isSym ? symTargets[Math.floor(Math.random()*symTargets.length)] : asymTargets[Math.floor(Math.random()*asymTargets.length)];
+            e.html(`<p>これは左右対称？</p><div style="font-size:34px;letter-spacing:4px;margin:20px;">${row.join('')}</div><div class="grid-2x2" style="grid-template-columns:1fr 1fr;"><button onclick="app.ans(${isSym===true})">対称 ✅</button><button onclick="app.ans(${isSym===false})">非対称 ❌</button></div>`);
         }
     }
 };
@@ -173,117 +625,233 @@ const GAMES = {
    アプリケーションロジック
 ========================================= */
 const app = {
-    username: '', currentGame: null, score: 0, timeLeft: 0, timerId: null, radarChart: null,
-    stats: { memory: 0, reflex: 0, calc: 0, attention: 0 },
+    user: 'ゲスト', curG: null, curE: null, score: 0, time: 0, timeMax: 0, tid: null,
+    state: 'menu', dailyMode: false, dailyGames: [], dailyStep: 0, dailyScore: 0,
+    answering: false, _pollTimer: null,
 
     init() {
-        const savedName = localStorage.getItem('sora_name');
-        if (savedName) { this.username = savedName; document.getElementById('header-user').innerText = `👤 ${this.username}`; this.loadStats(); this.showScreen('home'); }
+        this.buildSelect(); // 通信・音の前に、まずはリストを確実に作る
+        bgmOn = ls.get('sora_bgm') === '1';
+        document.getElementById('bgm-icon').innerText = bgmOn ? '🔊' : '🔈';
+        this.attachSwipe();
+        let name = ls.get('sora_user');
+        if(name) { this.user = name; document.getElementById('h-user').innerText = `👤 ${this.user}`; this.showScreen('home'); }
     },
     login() {
-        const name = document.getElementById('username-input').value.trim();
-        if (name) { this.username = name; localStorage.setItem('sora_name', name); document.getElementById('header-user').innerText = `👤 ${this.username}`; this.loadStats(); this.showScreen('home'); }
+        const n = document.getElementById('username-input').value.trim();
+        if(n) { this.user = n; ls.set('sora_user', n); document.getElementById('h-user').innerText = `👤 ${this.user}`; this.showScreen('home'); }
     },
-    showScreen(sId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(`screen-${sId}`).classList.add('active');
-        if(sId === 'home') this.renderChart();
-    },
-    showGameList(c) {
-        const con = document.getElementById('gamelist-container'); con.innerHTML = '';
-        const cN = {memory:'記憶力系', reflex:'直感力系', calc:'計算力系', attention:'注意力系'};
-        document.getElementById('gamelist-title').innerText = cN[c];
-        Object.values(GAMES).filter(g=>g.category===c).forEach(g => {
-            const btn = document.createElement('button'); btn.innerHTML = `<div style="font-size:18px;">${g.title}</div><div style="font-size:12px;font-weight:normal;">${g.desc}</div>`;
-            btn.style.textAlign = 'left'; btn.onclick = () => this.startGame(g); con.appendChild(btn);
+    editName() {
+        this.showPrompt('新しい名前を入力してください', this.user, (n) => {
+            this.user = n; ls.set('sora_user', this.user);
+            document.getElementById('h-user').innerText = `👤 ${this.user}`;
         });
-        this.showScreen('gamelist');
+    },
+    toggleBGM() {
+        SE.init();
+        bgmOn = !bgmOn; ls.set('sora_bgm', bgmOn ? '1' : '0');
+        document.getElementById('bgm-icon').innerText = bgmOn ? '🔊' : '🔈';
+        if(bgmOn && this.state === 'playing') startBGM(); else stopBGM();
+    },
+    showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`screen-${id}`).classList.add('active');
+        this.stopRankingPoll();
+        if(id === 'global-ranking') { this.loadGlobalRanking(); this.startRankingPoll(() => this.loadGlobalRanking(true)); }
+        if(id === 'mypage') this.loadMyPage();
+    },
+    goHome() { this.quitGame(); this.showScreen('home'); },
+
+    // ---- ゲームフロー ----
+    showCategory(c) {
+        document.getElementById('list-title').innerText = CATS[c];
+        const con = document.getElementById('list-container'); con.innerHTML = '';
+        Object.values(GAMES).filter(g=>g.cat===c).forEach(g => {
+            const d = document.createElement('div'); d.className = 'game-list-item';
+            d.innerHTML = `<div style="font-weight:bold;font-size:18px">${g.title}</div><div style="font-size:12px;color:#666">${g.desc}</div>`;
+            d.onclick = () => { this.dailyMode = false; this.startGame(g); };
+            con.appendChild(d);
+        });
+        this.showScreen('list');
     },
     startGame(g) {
-        this.currentGame = g; this.score = 0; this.timeLeft = 30;
-        document.getElementById('game-title').innerText = g.title; document.getElementById('game-score').innerText = `🏆 0点`;
-        this.showScreen('game'); this.updateTimerDisplay();
-        this.timerId = setInterval(() => { this.timeLeft--; this.updateTimerDisplay(); if (this.timeLeft<=0) this.endGame(); }, 1000);
-        this.nextQuestion();
+        SE.init(); // ユーザーがボタンを押したこの瞬間に音の準備をする
+        this.curG = g; this.score = 0; this.time = (g.id==='a3'||g.id==='m3') ? 60 : 30; this.timeMax = this.time; this.state = 'playing';
+        document.getElementById('game-title').innerText = g.title;
+        document.getElementById('btn-quit').style.display = this.dailyMode ? 'none' : 'block';
+        this.updateUI(); this.showScreen('game');
+        startBGM();
+        this.tid = setInterval(() => { this.time--; this.updateUI(); if(this.time<=0) this.endGame(); }, 1000);
+        this.next();
     },
-    updateTimerDisplay() { document.getElementById('game-timer').innerText = `⏳ ${this.timeLeft}秒`; },
-    nextQuestion() { if(this.timeLeft>0) this.currentGame.play({render: (h) => document.getElementById('game-area').innerHTML = h }); },
-    checkAnswer(ok) {
-        if (ok === 'true') { this.score+=10; document.getElementById('game-area').style.backgroundColor = '#d4edda'; } 
-        else { document.getElementById('game-area').style.backgroundColor = '#f8d7da'; }
-        document.getElementById('game-score').innerText = `🏆 ${this.score}点`;
-        setTimeout(() => { document.getElementById('game-area').style.backgroundColor = '#f9f9f9'; this.nextQuestion(); }, 300);
+    updateUI() {
+        document.getElementById('g-timer').innerText = `⏳ ${this.time}秒`;
+        document.getElementById('g-score').innerText = `🏆 ${this.score}${this.curG.unit}`;
+        const fill = document.getElementById('g-bar-fill');
+        if(fill) fill.style.width = Math.max(0, this.timeMax ? (this.time/this.timeMax*100) : 100) + '%';
     },
-    endGame(m = false) {
-        clearInterval(this.timerId);
-        if (m) { this.showScreen('home'); return; }
-        this.stats[this.currentGame.category] += this.score; this.saveStats();
-        
-        document.getElementById('result-score').innerText = `スコア: ${this.score}点`;
-        this.showScreen('result');
-        this.saveAndLoadRanking(this.currentGame.id, this.score);
+    next() {
+        if(this.state !== 'playing') return;
+        this.answering = false;
+        const e = { html: (h) => { const el = document.getElementById('game-area'); if(el) el.innerHTML = h; } };
+        this.curE = e;
+        this.curG.play(e);
     },
-    playCurrentGame() { this.startGame(this.currentGame); },
-    saveStats() { localStorage.setItem(`sora_stats_${this.username}`, JSON.stringify(this.stats)); },
-    loadStats() { const s = localStorage.getItem(`sora_stats_${this.username}`); if(s) this.stats = JSON.parse(s); },
-    renderChart() {
-        const ctx = document.getElementById('radarChart').getContext('2d');
-        if(this.radarChart) this.radarChart.destroy();
-        this.radarChart = new Chart(ctx, { type:'radar', data: { labels:['記憶力','直感力','計算力','注意力'], datasets:[{ label:'脳力', data:[this.stats.memory, this.stats.reflex, this.stats.calc, this.stats.attention], backgroundColor:'rgba(74, 144, 226, 0.4)', borderColor:'rgba(74, 144, 226, 1)', pointBackgroundColor:'rgba(74, 144, 226, 1)', borderWidth: 2 }] }, options: { responsive:true, maintainAspectRatio:false, scales:{r:{angleLines:{color:'rgba(0,0,0,0.1)'},grid:{color:'rgba(0,0,0,0.1)'},pointLabels:{font:{size:14}},ticks:{display:false,min:0}}}, plugins:{legend:{display:false}} } });
+    // 修正: 以前は customAns 経路が毎回 play() を再実行して例外を投げ、
+    // m2/m3/a3/r4 でタップが一切反応しなくなる致命的なバグがあったため書き直し
+    ans(arg1, arg2) {
+        if(this.state !== 'playing') return;
+        if(typeof arg1 === 'string') {
+            if(this.curE && typeof this.curE.customAns === 'function') this.curE.customAns(arg2);
+            return;
+        }
+        if(this.answering) return; // 連打で二重加点しないようにロック
+        this.answering = true;
+        const area = document.getElementById('game-area');
+        if(arg1===true) { this.score+=10; SE.correct(); if(area) area.style.background='#d4edda'; }
+        else { SE.wrong(); if(area) area.style.background='#f8d7da'; }
+        this.updateUI();
+        setTimeout(() => { if(area) area.style.background='#f9f9f9'; this.answering=false; this.next(); }, 300);
     },
+    addScore(v) { this.score += v; this.updateUI(); },
+    endGame() {
+        clearInterval(this.tid); this.state = 'ended'; stopBGM(); SE.finish();
 
-/* =========================================
-       GAS (スプレッドシート) との通信
-    ========================================= */
-    async saveAndLoadRanking(gameId, score) {
-        const tbody = document.getElementById('ranking-body');
-        
-        if (!GAS_URL || GAS_URL.indexOf("script.google.com") === -1) {
-            tbody.innerHTML = '<tr><td colspan="3">※ GAS_URLが設定されていません</td></tr>';
+        if(this.dailyMode) {
+            this.dailyScore += this.score; this.dailyStep++;
+            if(this.dailyStep < 4) { this.startGame(this.dailyGames[this.dailyStep]); }
+            else { this.showAgeResult(); }
             return;
         }
 
-        tbody.innerHTML = '<tr><td colspan="3">送信・取得中...</td></tr>';
+        const g = this.curG, sc = this.score;
+        document.getElementById('res-score').innerText = `${sc} ${g.unit}`;
+        document.getElementById('btn-retry').style.display = 'block';
+        document.getElementById('res-ranking-area').style.display = 'block';
+        this.showScreen('result');
+        this.saveAndLoad(g, sc, 'res-ranking-body');
+        // 他の端末からの投稿もリアルタイムに近い形で反映されるように定期更新
+        this.startRankingPoll(() => this.fetchRanking(g, 'res-ranking-body', sc, true));
+    },
+    quitGame() { clearInterval(this.tid); this.state = 'menu'; stopBGM(); this.stopRankingPoll(); },
+    retryGame() { this.startGame(this.curG); },
 
-        try {
-            // 【変更点1】カテゴリ名とゲーム名を組み合わせた日本語タイトルを作る
-            const catNames = {memory:'記憶力系', reflex:'直感力・判断力系', calc:'計算力系', attention:'注意力・空間認識系'};
-            const jpTitle = `${catNames[this.currentGame.category]}：${this.currentGame.title}`;
+    // ---- 今日の脳トレモード ----
+    startDaily() {
+        this.dailyMode = true; this.dailyStep = 0; this.dailyScore = 0;
+        const cats = ['memory', 'reflex', 'calc', 'attention'];
+        this.dailyGames = cats.map(c => {
+            const arr = Object.values(GAMES).filter(g=>g.cat===c);
+            return arr[Math.floor(Math.random()*arr.length)];
+        });
+        this.showInfo('今日の脳トレ', '全4カテゴリのミニゲームを連続でプレイします。\n最後に「脳年齢」が発表されます！', () => {
+            this.startGame(this.dailyGames[0]);
+        });
+    },
+    showAgeResult() {
+        let age = Math.max(20, 80 - Math.floor(this.dailyScore / 5));
+        document.getElementById('age-num').innerText = `${age}歳`;
+        document.getElementById('modal-age').style.display = 'flex';
+        SE.finish();
 
-            // 1. スコアを送信して保存
-            if (score > 0) {
-                // gameIdの代わりにgameTitle(日本語)を送信
-                const saveUrl = `${GAS_URL}?action=save&gameTitle=${encodeURIComponent(jpTitle)}&name=${encodeURIComponent(this.username)}&score=${score}`;
-                await fetch(saveUrl);
-            }
+        let hist = [];
+        try { hist = JSON.parse(ls.get('sora_history') || '[]'); } catch(e) { hist = []; }
+        const today = new Date().toLocaleDateString('ja-JP');
+        hist.unshift({ date: today, age: age });
+        if(hist.length > 30) hist.pop();
+        ls.set('sora_history', JSON.stringify(hist));
+    },
+    loadMyPage() {
+        let hist = [];
+        try { hist = JSON.parse(ls.get('sora_history') || '[]'); } catch(e) { hist = []; }
+        const tbody = document.getElementById('mypage-body');
+        if(hist.length===0) { tbody.innerHTML = '<tr><td colspan="2">まだ記録がありません</td></tr>'; return; }
+        tbody.innerHTML = hist.map(h => `<tr><td>${escapeHtml(h.date)}</td><td style="font-weight:bold;color:var(--primary)">${escapeHtml(String(h.age))}歳</td></tr>`).join('');
+    },
 
-            // 2. 今月のランキングを取得
-            // 【変更点2】キャッシュを防ぐため、通信URLの最後に時刻(&t=...)を付与
-            const loadUrl = `${GAS_URL}?action=ranking&gameTitle=${encodeURIComponent(jpTitle)}&t=${Date.now()}`;
-            const response = await fetch(loadUrl);
-            const ranks = await response.json();
+    // ---- スワイプ操作 ----
+    attachSwipe() {
+        const area = document.getElementById('game-area');
+        let sx=0, sy=0, st=0;
+        area.addEventListener('touchstart', (ev) => { const t=ev.changedTouches[0]; sx=t.clientX; sy=t.clientY; st=Date.now(); }, {passive:true});
+        area.addEventListener('touchend', (ev) => {
+            const t=ev.changedTouches[0]; const dx=t.clientX-sx, dy=t.clientY-sy; const dt=Date.now()-st;
+            if(dt>800) return;
+            const absX=Math.abs(dx), absY=Math.abs(dy);
+            if(Math.max(absX,absY) < 40) return;
+            const dir = absX>absY ? (dx>0?'RIGHT':'LEFT') : (dy>0?'DOWN':'UP');
+            if(this.state==='playing' && this.curG && typeof this.curG.onSwipe === 'function') this.curG.onSwipe(dir);
+        }, {passive:true});
+    },
 
-            // 3. 画面に表示
-            tbody.innerHTML = '';
-            if (ranks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">まだ記録がありません</td></tr>';
-                return;
-            }
+    // ---- 汎用モーダル（alert/prompt代替。埋め込み・iframe環境でも安全に動く） ----
+    showInfo(title, msg, onOk) {
+        document.getElementById('info-title').innerText = title;
+        document.getElementById('info-msg').innerText = msg;
+        const modal = document.getElementById('modal-info'); modal.style.display = 'flex';
+        const btn = document.getElementById('info-ok');
+        const handler = () => { modal.style.display='none'; btn.removeEventListener('click', handler); if(onOk) onOk(); };
+        btn.addEventListener('click', handler);
+    },
+    showPrompt(title, defVal, onOk) {
+        document.getElementById('prompt-title').innerText = title;
+        const input = document.getElementById('prompt-input'); input.value = defVal || '';
+        const modal = document.getElementById('modal-prompt'); modal.style.display = 'flex';
+        setTimeout(()=>input.focus(), 50);
+        const okBtn = document.getElementById('prompt-ok'), cancelBtn = document.getElementById('prompt-cancel');
+        const cleanup = () => { modal.style.display='none'; okBtn.removeEventListener('click', okHandler); cancelBtn.removeEventListener('click', cancelHandler); };
+        const okHandler = () => { const v = input.value.trim(); cleanup(); if(v) onOk(v); };
+        const cancelHandler = () => cleanup();
+        okBtn.addEventListener('click', okHandler);
+        cancelBtn.addEventListener('click', cancelHandler);
+    },
 
-            ranks.forEach((r, idx) => {
-                const tr = document.createElement('tr');
-                const rc = idx < 3 ? `rank-${idx+1}` : '';
-                tr.innerHTML = `<td class="${rc}">${idx + 1}位</td><td>${r.name}</td><td class="${rc}">${r.score}点</td>`;
-                if(r.name === this.username && r.score === this.score) {
-                    tr.style.backgroundColor = '#fff3cd'; tr.style.fontWeight = 'bold';
-                }
-                tbody.appendChild(tr);
+    // ---- 通信・ランキング ----
+    buildSelect() {
+        const sel = document.getElementById('rank-select');
+        let html = '<option value="">ゲームを選んでください</option>';
+        Object.keys(CATS).forEach(catKey => {
+            html += `<optgroup label="${CATS[catKey]}">`;
+            Object.values(GAMES).filter(g=>g.cat===catKey).forEach(g => {
+                html += `<option value="${CATS[catKey]}：${g.title}">${g.title}</option>`;
             });
-        } catch (e) {
-            console.error(e);
-            tbody.innerHTML = '<tr><td colspan="3">通信エラーが発生しました</td></tr>';
-        }
-    }
+            html += '</optgroup>';
+        });
+        sel.innerHTML = html;
+    },
+    titleFor(gameInfo) { return gameInfo.title_full || `${CATS[gameInfo.cat]}：${gameInfo.title}`; },
+    loadGlobalRanking(silent=false) {
+        const title = document.getElementById('rank-select').value;
+        if(!title) { document.getElementById('global-ranking-body').innerHTML = '<tr><td colspan="3">選択してください</td></tr>'; return; }
+        this.fetchRanking({title_full:title}, 'global-ranking-body', 0, silent);
+    },
+    async postScore(gameInfo, score) {
+        if(!GAS_URL || GAS_URL.indexOf('script') === -1 || score <= 0) return;
+        try { await fetch(`${GAS_URL}?action=save&gameTitle=${encodeURIComponent(this.titleFor(gameInfo))}&name=${encodeURIComponent(this.user)}&score=${score}`, {mode:'no-cors'}); }
+        catch(e) {}
+    },
+    async fetchRanking(gameInfo, tbodyId, highlightScore=0, silent=false) {
+        const tbody = document.getElementById(tbodyId); if(!tbody) return;
+        if(!GAS_URL || GAS_URL.indexOf('script') === -1) { tbody.innerHTML = '<tr><td colspan="3">※ GAS連携待ち</td></tr>'; return; }
+        if(!silent) tbody.innerHTML = '<tr><td colspan="3">通信中...</td></tr>';
+        try {
+            const res = await fetch(`${GAS_URL}?action=ranking&gameTitle=${encodeURIComponent(this.titleFor(gameInfo))}&t=${Date.now()}`);
+            const ranks = await res.json();
+            if(!Array.isArray(ranks) || ranks.length===0) { tbody.innerHTML = '<tr><td colspan="3">記録なし</td></tr>'; return; }
+            tbody.innerHTML = ranks.map((r, i) => {
+                const rc = i<3?`rank-${i+1}`:'';
+                const hi = (highlightScore>0 && r.name===this.user && r.score===highlightScore) ? 'background:#fff3cd;font-weight:bold' : '';
+                // 他ユーザーの名前はサーバー由来の値なので必ずエスケープしてXSSを防ぐ
+                return `<tr style="${hi}"><td class="${rc}">${i+1}位</td><td>${escapeHtml(r.name)}</td><td class="${rc}">${escapeHtml(String(r.score))}</td></tr>`;
+            }).join('');
+        } catch(e) { if(!silent) tbody.innerHTML = '<tr><td colspan="3">通信エラー</td></tr>'; }
+    },
+    async saveAndLoad(gameInfo, score, tbodyId) {
+        if(score > 0) { await this.postScore(gameInfo, score); await new Promise(r=>setTimeout(r, 900)); }
+        await this.fetchRanking(gameInfo, tbodyId, score);
+    },
+    startRankingPoll(fn) { this.stopRankingPoll(); this._pollTimer = setInterval(fn, 6000); },
+    stopRankingPoll() { if(this._pollTimer) { clearInterval(this._pollTimer); this._pollTimer = null; } }
 };
 
 window.onload = () => app.init();
